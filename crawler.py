@@ -6,6 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import requests
 
 
 def parse_args():
@@ -86,13 +87,17 @@ def download_xmls(driver: webdriver.Chrome, base_dir: Path, ie: str, entry_type:
     ie_dir = base_dir / ie / entry_type
     ie_dir.mkdir(parents=True, exist_ok=True)
     downloaded = []
+    # Preserve session cookies so requests can access authenticated resources
+    cookies = {c["name"]: c["value"] for c in driver.get_cookies()}
     for link in download_links:
         file_url = link.get_attribute("href")
         filename = file_url.split("/")[-1]
         dest = ie_dir / filename
-        with open(dest, "wb") as f:
-            f.write(driver.get(file_url))
-        downloaded.append(dest)
+        resp = requests.get(file_url, cookies=cookies)
+        if resp.ok:
+            with open(dest, "wb") as f:
+                f.write(resp.content)
+            downloaded.append(dest)
     return downloaded
 
 
