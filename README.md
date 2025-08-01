@@ -16,6 +16,18 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### Installing ChromeDriver
+
+1. Download ChromeDriver matching your Chrome version from the
+   [official page](https://chromedriver.chromium.org/downloads).
+2. Unzip the file and place the `chromedriver` executable in a folder on your
+   `PATH` (e.g., `/usr/local/bin` or `C:\\Windows`).
+3. Verify it works by running `chromedriver --version`; the output should match
+   the installed browser version.
+
+If elements time out while the browser is open, the driver may be incompatible
+with the installed browser. Reinstall a matching version and try again.
+
 ## Basic Usage
 
 Below is a simplified snippet illustrating how Selenium can be used. It purposely omits automatic credential handling—**do not store or log your CPF or password**.
