@@ -55,9 +55,34 @@ def wait_for_user(prompt: str = "Press Enter to continue..."):
         input(prompt)
 
 
+def close_certificate_popup(driver: webdriver.Chrome):
+    """Dismiss the certificate selection popup if it appears."""
+    try:
+        # Some browsers open the certificate dialog in a new window.
+        WebDriverWait(driver, 5).until(EC.number_of_windows_to_be(2))
+        main = driver.current_window_handle
+        for handle in driver.window_handles:
+            if handle != main:
+                driver.switch_to.window(handle)
+                driver.close()
+                driver.switch_to.window(main)
+                human_delay()
+                break
+    except Exception:
+        pass
+    # Fallback for JavaScript alerts
+    try:
+        WebDriverWait(driver, 2).until(EC.alert_is_present())
+        driver.switch_to.alert.dismiss()
+        human_delay()
+    except Exception:
+        pass
+
+
 def open_portal(driver: webdriver.Chrome):
     check_pause()
     driver.get("https://portal.sefaz.go.gov.br/portalsefaz-apps/auth/login-form")
+    close_certificate_popup(driver)
     wait_for_user("Log in manually, then press Enter to continue...")
 
 
@@ -66,11 +91,16 @@ def open_portal(driver: webdriver.Chrome):
 def navigate_to_download_page(driver: webdriver.Chrome):
     """Navigate to Acesso Restrito -> Baixar XML NFE after login."""
     check_pause()
-    # click "Acesso Restrito"
-    WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable((By.LINK_TEXT, "Acesso Restrito"))
-    ).click()
+    # click "Acesso Restrito" (opens in a new tab)
+    acesso = WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable(
+            (By.CSS_SELECTOR, "a.dashboard-sistemas-item[title='Acessar o Sistema']")
+        )
+    )
+    acesso.click()
     human_delay(1, 2)
+    if len(driver.window_handles) > 1:
+        driver.switch_to.window(driver.window_handles[-1])
     # click "Baixar XML NFE"
     WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.LINK_TEXT, "Baixar XML NFE"))
