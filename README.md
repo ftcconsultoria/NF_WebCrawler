@@ -38,6 +38,8 @@ from time import sleep
 
 # Launch browser
 browser = webdriver.Chrome()
+# Start in full screen
+browser.maximize_window()
 
 # Open login page
 browser.get("https://portal.sefaz.go.gov.br/portalsefaz-apps/auth/login-form")

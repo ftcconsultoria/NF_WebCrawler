@@ -233,6 +233,11 @@ def main(arg_list=None):
     prefs = {"download.default_directory": str(base_dir.resolve())}
     options.add_experimental_option("prefs", prefs)
     driver = webdriver.Chrome(options=options)
+    # Start the browser in fullscreen mode
+    try:
+        driver.maximize_window()
+    except Exception:
+        pass
 
     try:
         open_portal(driver)
