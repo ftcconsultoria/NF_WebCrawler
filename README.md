@@ -4,18 +4,16 @@ This project automates the download of electronic invoice (NFE) XML files from t
 
 ## Required Packages
 
-Install Python 3.9+ and the following packages:
-
-- `selenium`
-- `requests`
-- a suitable WebDriver (e.g., ChromeDriver) available on your `PATH`
+Install Python 3.9+ and ensure a suitable WebDriver (e.g., ChromeDriver) is
+available on your `PATH`.  All Python dependencies are listed in the
+`requirements.txt` file.
 
 Create and activate a virtual environment, then install the dependencies:
 
 ```bash
 python -m venv venv
 source venv/bin/activate
-pip install selenium requests
+pip install -r requirements.txt
 ```
 
 ## Basic Usage
