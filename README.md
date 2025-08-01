@@ -68,6 +68,10 @@ While the automation is running, moving the mouse over the application window
 pauses execution. After a few seconds without movement, the process resumes
 where it stopped.
 
+When manual interaction is required (for instance, to log in on the portal), a
+small dialog appears asking you to "Continuar". After completing the step,
+click the button to resume the crawler.
+
 Run the menu with Python:
 
 ```bash

@@ -1,5 +1,5 @@
 import threading
-from tkinter import Tk, Label, Entry, Button, StringVar, messagebox
+from tkinter import Tk, Label, Entry, Button, StringVar, messagebox, Toplevel
 
 import crawler
 from pause import PauseController
@@ -30,6 +30,8 @@ class App:
         self.ies = StringVar()
         self.download_dir = StringVar(value="downloads")
 
+        crawler.set_prompt_callback(self.show_prompt)
+
         Label(root, text="Start date (DD/MM/YYYY):").pack()
         Entry(root, textvariable=self.start_date).pack()
         Label(root, text="End date (DD/MM/YYYY):").pack()
@@ -39,6 +41,21 @@ class App:
         Label(root, text="Download directory:").pack()
         Entry(root, textvariable=self.download_dir).pack()
         Button(root, text="Start", command=self.start).pack(pady=8)
+
+    def show_prompt(self, text: str):
+        """Display a modal dialog asking the user to continue."""
+        event = threading.Event()
+
+        def _show():
+            win = Toplevel(self.root)
+            win.title("NF WebCrawler")
+            Label(win, text=text, wraplength=320).pack(padx=10, pady=10)
+            Button(win, text="Continuar", command=lambda: (event.set(), win.destroy())).pack(pady=5)
+            win.transient(self.root)
+            win.grab_set()
+
+        self.root.after(0, _show)
+        event.wait()
 
     def start(self):
         ies_list = [v for v in self.ies.get().split() if v]
