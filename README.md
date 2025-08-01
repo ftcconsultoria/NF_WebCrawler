@@ -55,7 +55,9 @@ input("Log in manually, then press Enter to continue...")
 ## Updating Selectors
 
 Elements such as **Acesso Restrito** and **Baixar XML NFE** are located using CSS
-and text selectors defined in a configuration file, `config.json`. If the script
+and text selectors defined in a configuration file, `config.json`. The crawler
+loads this file at startup using a helper function `load_config`. If the file or
+any of its keys are missing, the built‑in defaults are used instead. If the script
 fails to locate a menu option or form field, inspect the page manually and
 update the appropriate selector in `config.json`.
 
@@ -83,8 +85,8 @@ update the appropriate selector in `config.json`.
 ```
 
 Each section corresponds to a function in `crawler.py` and can be adjusted to
-match the HTML structure of the portal. If `config.json` is missing, the default
-selectors coded in `crawler.py` are used.
+match the HTML structure of the portal. If `config.json` is missing or omits a
+specific selector, the default values embedded in `crawler.py` are used.
 
 ## Tips
 

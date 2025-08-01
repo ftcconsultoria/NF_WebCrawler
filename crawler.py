@@ -1,5 +1,7 @@
 import argparse
 import random
+import json
+import copy
 from pathlib import Path
 from time import sleep
 
@@ -10,11 +12,52 @@ from selenium.webdriver.support import expected_conditions as EC
 import requests
 
 from pause import PauseController
-from typing import Callable, Optional
+from typing import Callable, Optional, Dict
 
 
 pause_controller: Optional[PauseController] = None
 prompt_callback: Optional[Callable[[str], None]] = None
+
+# default selectors used when config.json is absent or missing keys
+DEFAULT_CONFIG: Dict[str, Dict[str, str]] = {
+    "navigate_to_download_page": {
+        "acesso_selector": "a.dashboard-sistemas-item[title='Acessar o Sistema']",
+        "baixar_xml_link": "Baixar XML NFE",
+    },
+    "set_date_range": {
+        "start_id": "dataInicio",
+        "end_id": "dataFim",
+    },
+    "select_ie": {
+        "field_id": "inscricaoEstadual",
+    },
+    "download_xmls": {
+        "search_button_id": "btnPesquisar",
+        "table_selector": "table",
+        "download_link_text": "Baixar XML",
+    },
+}
+
+
+def load_config(path: Path = Path("config.json")) -> Dict[str, Dict[str, str]]:
+    """Load selectors from a JSON file, falling back to defaults."""
+    config = copy.deepcopy(DEFAULT_CONFIG)
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            for key, section in data.items():
+                if isinstance(section, dict):
+                    config.setdefault(key, {}).update(section)
+                else:
+                    config[key] = section
+        except Exception:
+            # Ignore malformed config and use defaults
+            pass
+    return config
+
+
+CONFIG = load_config()
 
 
 def set_pause_controller(controller: PauseController):
@@ -94,7 +137,7 @@ def navigate_to_download_page(driver: webdriver.Chrome):
     # click "Acesso Restrito" (opens in a new tab)
     acesso = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable(
-            (By.CSS_SELECTOR, "a.dashboard-sistemas-item[title='Acessar o Sistema']")
+            (By.CSS_SELECTOR, CONFIG["navigate_to_download_page"]["acesso_selector"])
         )
     )
     acesso.click()
@@ -105,7 +148,9 @@ def navigate_to_download_page(driver: webdriver.Chrome):
         wait_for_user("Complete any required authentication, then continue...")
     # click "Baixar XML NFE" after authentication
     WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable((By.LINK_TEXT, "Baixar XML NFE"))
+        EC.element_to_be_clickable(
+            (By.LINK_TEXT, CONFIG["navigate_to_download_page"]["baixar_xml_link"])
+        )
     ).click()
     human_delay(0.5, 1.5)
     # wait for page load, re-authentication might be required
@@ -117,12 +162,16 @@ def set_date_range(driver: webdriver.Chrome, start_date: str, end_date: str):
     # Example selectors - adjust to match actual page
     check_pause()
     start_field = WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.ID, "dataInicio"))
+        EC.presence_of_element_located(
+            (By.ID, CONFIG["set_date_range"]["start_id"])
+        )
     )
     start_field.clear()
     start_field.send_keys(start_date)
     end_field = WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.ID, "dataFim"))
+        EC.presence_of_element_located(
+            (By.ID, CONFIG["set_date_range"]["end_id"])
+        )
     )
     end_field.clear()
     end_field.send_keys(end_date)
@@ -133,7 +182,9 @@ def select_ie(driver: webdriver.Chrome, ie: str):
     """Enter an inscricao estadual number."""
     check_pause()
     ie_field = WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.ID, "inscricaoEstadual"))
+        EC.presence_of_element_located(
+            (By.ID, CONFIG["select_ie"]["field_id"])
+        )
     )
     ie_field.clear()
     ie_field.send_keys(ie)
@@ -150,14 +201,20 @@ def download_xmls(driver: webdriver.Chrome, base_dir: Path, ie: str, entry_type:
     )
     radio.click()
     human_delay()
-    search_btn = driver.find_element(By.ID, "btnPesquisar")
+    search_btn = driver.find_element(
+        By.ID, CONFIG["download_xmls"]["search_button_id"]
+    )
     search_btn.click()
     human_delay(1, 2)
     # wait until table results appear
     WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "table"))
+        EC.presence_of_element_located(
+            (By.CSS_SELECTOR, CONFIG["download_xmls"]["table_selector"])
+        )
     )
-    download_links = driver.find_elements(By.LINK_TEXT, "Baixar XML")
+    download_links = driver.find_elements(
+        By.LINK_TEXT, CONFIG["download_xmls"]["download_link_text"]
+    )
     ie_dir = base_dir / ie / entry_type
     ie_dir.mkdir(parents=True, exist_ok=True)
     downloaded = []
