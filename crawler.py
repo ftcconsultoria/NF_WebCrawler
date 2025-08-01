@@ -1,4 +1,5 @@
 import argparse
+import random
 from pathlib import Path
 from time import sleep
 
@@ -8,14 +9,34 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import requests
 
+from pause import PauseController
 
-def parse_args():
+
+pause_controller: PauseController | None = None
+
+
+def set_pause_controller(controller: PauseController):
+    global pause_controller
+    pause_controller = controller
+
+
+def check_pause():
+    if pause_controller:
+        pause_controller.check()
+
+
+def human_delay(min_sec: float = 0.5, max_sec: float = 1.5):
+    check_pause()
+    sleep(random.uniform(min_sec, max_sec))
+
+
+def parse_args(arg_list=None):
     parser = argparse.ArgumentParser(description="Download NFE XMLs from SEFAZ portal")
     parser.add_argument("--ies", nargs="+", required=True, help="Inscricoes Estaduais")
     parser.add_argument("--start-date", required=True, help="Start date in DD/MM/YYYY")
     parser.add_argument("--end-date", required=True, help="End date in DD/MM/YYYY")
     parser.add_argument("--download-dir", default="downloads", help="Directory to store XML files")
-    return parser.parse_args()
+    return parser.parse_args(arg_list)
 
 
 def wait_for_user(prompt: str = "Press Enter to continue..."):
@@ -23,6 +44,7 @@ def wait_for_user(prompt: str = "Press Enter to continue..."):
 
 
 def open_portal(driver: webdriver.Chrome):
+    check_pause()
     driver.get("https://portal.sefaz.go.gov.br/portalsefaz-apps/auth/login-form")
     wait_for_user("Log in manually, then press Enter to continue...")
 
@@ -31,15 +53,17 @@ def open_portal(driver: webdriver.Chrome):
 
 def navigate_to_download_page(driver: webdriver.Chrome):
     """Navigate to Acesso Restrito -> Baixar XML NFE after login."""
+    check_pause()
     # click "Acesso Restrito"
     WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.LINK_TEXT, "Acesso Restrito"))
     ).click()
-    sleep(1)
+    human_delay(1, 2)
     # click "Baixar XML NFE"
     WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.LINK_TEXT, "Baixar XML NFE"))
     ).click()
+    human_delay(0.5, 1.5)
     # wait for page load, re-authentication might be required
     wait_for_user("Complete any additional authentication, then press Enter...")
 
@@ -47,6 +71,7 @@ def navigate_to_download_page(driver: webdriver.Chrome):
 def set_date_range(driver: webdriver.Chrome, start_date: str, end_date: str):
     """Fill in the start and end date fields."""
     # Example selectors - adjust to match actual page
+    check_pause()
     start_field = WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.ID, "dataInicio"))
     )
@@ -57,28 +82,33 @@ def set_date_range(driver: webdriver.Chrome, start_date: str, end_date: str):
     )
     end_field.clear()
     end_field.send_keys(end_date)
+    human_delay()
 
 
 def select_ie(driver: webdriver.Chrome, ie: str):
     """Enter an inscricao estadual number."""
+    check_pause()
     ie_field = WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.ID, "inscricaoEstadual"))
     )
     ie_field.clear()
     ie_field.send_keys(ie)
+    human_delay()
 
 
 def download_xmls(driver: webdriver.Chrome, base_dir: Path, ie: str, entry_type: str):
     """Click on the Entradas or Saidas option and download XMLs."""
     # entry_type should be "Entradas" or "Saidas"
     # Example radio button selector
+    check_pause()
     radio = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.XPATH, f"//label[contains(., '{entry_type}')]"))
     )
     radio.click()
+    human_delay()
     search_btn = driver.find_element(By.ID, "btnPesquisar")
     search_btn.click()
-    sleep(2)
+    human_delay(1, 2)
     # wait until table results appear
     WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "table"))
@@ -98,6 +128,7 @@ def download_xmls(driver: webdriver.Chrome, base_dir: Path, ie: str, entry_type:
             with open(dest, "wb") as f:
                 f.write(resp.content)
             downloaded.append(dest)
+        human_delay(0.5, 1)
     return downloaded
 
 
@@ -107,7 +138,7 @@ def process_ie(driver: webdriver.Chrome, base_dir: Path, ie: str, start_date: st
     downloads = []
     for entry_type in ("Entradas", "Saidas"):
         downloads.extend(download_xmls(driver, base_dir, ie, entry_type))
-        sleep(2)
+        human_delay(1, 2)
     # click "Nova Consulta" if present
     try:
         nova_consulta = driver.find_element(By.LINK_TEXT, "Nova Consulta")
@@ -117,8 +148,8 @@ def process_ie(driver: webdriver.Chrome, base_dir: Path, ie: str, start_date: st
     return downloads
 
 
-def main():
-    args = parse_args()
+def main(arg_list=None):
+    args = parse_args(arg_list)
     base_dir = Path(args.download_dir)
     base_dir.mkdir(parents=True, exist_ok=True)
 
@@ -134,6 +165,7 @@ def main():
         for ie in args.ies:
             files = process_ie(driver, base_dir, ie, args.start_date, args.end_date)
             all_downloads.extend(files)
+            check_pause()
         print("\nDownloaded files:")
         for f in all_downloads:
             print(f)

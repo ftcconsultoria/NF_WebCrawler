@@ -52,7 +52,7 @@ input("Log in manually, then press Enter to continue...")
 ## Tips
 
 - Monitor session validity: if the portal logs you out, log in again before continuing.
-- Use short, human-like delays (e.g., `sleep(2)`) between actions to avoid being blocked by the site.
+- Short, human-like delays are automatically added between actions to reduce the chance of being blocked by the site.
 - Ensure downloads are complete before starting a new query.
 
 This README provides an overview of how to set up the environment and manually operate the crawler to retrieve XML files from the SEFAZ portal.
@@ -60,12 +60,17 @@ This README provides an overview of how to set up the environment and manually o
 
 ## Interactive Mode
 
-A small helper script `menu.py` provides an interactive way to run the crawler.
-Run it with Python and follow the prompts to supply the date range and list of Inscricoes Estaduais:
+The `menu.py` script now launches a small graphical interface similar to a Windows
+application. Fill in the dates, the space-separated list of **Inscrições Estaduais**
+and the download directory, then click **Start**.
+
+While the automation is running, moving the mouse over the application window
+pauses execution. After a few seconds without movement, the process resumes
+where it stopped.
+
+Run the menu with Python:
 
 ```bash
 python menu.py
 ```
-
-Type `start` when prompted to launch the download process.
 
