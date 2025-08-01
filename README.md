@@ -57,3 +57,15 @@ input("Log in manually, then press Enter to continue...")
 
 This README provides an overview of how to set up the environment and manually operate the crawler to retrieve XML files from the SEFAZ portal.
 
+
+## Interactive Mode
+
+A small helper script `menu.py` provides an interactive way to run the crawler.
+Run it with Python and follow the prompts to supply the date range and list of Inscricoes Estaduais:
+
+```bash
+python menu.py
+```
+
+Type `start` when prompted to launch the download process.
+
