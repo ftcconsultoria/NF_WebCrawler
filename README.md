@@ -49,6 +49,14 @@ input("Log in manually, then press Enter to continue...")
 7. Repeat the above step for every Inscrição Estadual.
 8. After downloading, generate a summary that lists the paths to the downloaded files.
 
+## Updating Selectors
+
+Elements such as **Acesso Restrito** and **Baixar XML NFE** are located using CSS
+and text selectors defined in [`crawler.py`](crawler.py). Check the
+`navigate_to_download_page` function around lines 89‑107 to see these selectors.
+If the script fails to locate the menu options, inspect the portal manually and
+update those selectors to match the current HTML structure.
+
 ## Tips
 
 - Monitor session validity: if the portal logs you out, log in again before continuing.
