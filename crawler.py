@@ -8,6 +8,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 import requests
 
 from pause import PauseController
@@ -113,9 +114,22 @@ def navigate_to_download_page(driver: webdriver.Chrome):
     if len(driver.window_handles) > 1:
         driver.switch_to.window(driver.window_handles[-1])
     baixar_text = cfg.get("baixar_xml_link", "Baixar XML NFE")
-    WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable((By.LINK_TEXT, baixar_text))
-    ).click()
+    try:
+        WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable((By.LINK_TEXT, baixar_text))
+        ).click()
+    except TimeoutException:
+        print(
+            "Could not locate the 'Baixar XML NFE' link. The selector may be outdated."
+        )
+        print(f"Current URL: {driver.current_url}")
+        try:
+            screenshot = "navigate_error.png"
+            if driver.save_screenshot(screenshot):
+                print(f"Screenshot saved to {screenshot}")
+        except Exception:
+            pass
+        return
     human_delay(0.5, 1.5)
     # wait for page load, re-authentication might be required
     wait_for_user("Complete any additional authentication, then press Enter...")
