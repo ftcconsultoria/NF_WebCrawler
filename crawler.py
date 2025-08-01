@@ -115,9 +115,13 @@ def navigate_to_download_page(driver: webdriver.Chrome):
         driver.switch_to.window(driver.window_handles[-1])
     baixar_text = cfg.get("baixar_xml_link", "Baixar XML NFE")
     try:
-        WebDriverWait(driver, 20).until(
+        baixar_link = WebDriverWait(driver, 20).until(
             EC.element_to_be_clickable((By.LINK_TEXT, baixar_text))
-        ).click()
+        )
+        existing_handles = driver.window_handles[:]
+        driver.execute_script("arguments[0].click();", baixar_link)
+        if len(driver.window_handles) > len(existing_handles):
+            driver.switch_to.window(driver.window_handles[-1])
     except TimeoutException:
         print(
             "Could not locate the 'Baixar XML NFE' link. The selector may be outdated."
