@@ -10,14 +10,22 @@ from selenium.webdriver.support import expected_conditions as EC
 import requests
 
 from pause import PauseController
+from typing import Callable, Optional
 
 
-pause_controller: PauseController | None = None
+pause_controller: Optional[PauseController] = None
+prompt_callback: Optional[Callable[[str], None]] = None
 
 
 def set_pause_controller(controller: PauseController):
     global pause_controller
     pause_controller = controller
+
+
+def set_prompt_callback(callback: Callable[[str], None]):
+    """Set a callback to display interactive prompts."""
+    global prompt_callback
+    prompt_callback = callback
 
 
 def check_pause():
@@ -40,7 +48,11 @@ def parse_args(arg_list=None):
 
 
 def wait_for_user(prompt: str = "Press Enter to continue..."):
-    input(prompt)
+    """Pause execution until the user confirms via console or GUI."""
+    if prompt_callback:
+        prompt_callback(prompt)
+    else:
+        input(prompt)
 
 
 def open_portal(driver: webdriver.Chrome):
