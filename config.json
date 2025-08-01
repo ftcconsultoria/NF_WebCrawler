@@ -1,0 +1,18 @@
+{
+  "navigate_to_download_page": {
+    "acesso_selector": "a.dashboard-sistemas-item[title='Acessar o Sistema']",
+    "baixar_xml_link": "Baixar XML NFE"
+  },
+  "set_date_range": {
+    "start_id": "dataInicio",
+    "end_id": "dataFim"
+  },
+  "select_ie": {
+    "field_id": "inscricaoEstadual"
+  },
+  "download_xmls": {
+    "search_button_id": "btnPesquisar",
+    "table_selector": "table",
+    "download_link_text": "Baixar XML"
+  }
+}

@@ -1,4 +1,5 @@
 import argparse
+import json
 import random
 from pathlib import Path
 from time import sleep
@@ -11,6 +12,14 @@ import requests
 
 from pause import PauseController
 from typing import Callable, Optional
+
+
+CONFIG_PATH = Path(__file__).with_name("config.json")
+try:
+    with CONFIG_PATH.open("r", encoding="utf-8") as f:
+        SELECTORS = json.load(f)
+except Exception:
+    SELECTORS = {}
 
 
 pause_controller: Optional[PauseController] = None
@@ -91,19 +100,21 @@ def open_portal(driver: webdriver.Chrome):
 def navigate_to_download_page(driver: webdriver.Chrome):
     """Navigate to Acesso Restrito -> Baixar XML NFE after login."""
     check_pause()
-    # click "Acesso Restrito" (opens in a new tab)
+    cfg = SELECTORS.get("navigate_to_download_page", {})
+    acesso_selector = cfg.get(
+        "acesso_selector",
+        "a.dashboard-sistemas-item[title='Acessar o Sistema']",
+    )
     acesso = WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable(
-            (By.CSS_SELECTOR, "a.dashboard-sistemas-item[title='Acessar o Sistema']")
-        )
+        EC.element_to_be_clickable((By.CSS_SELECTOR, acesso_selector))
     )
     acesso.click()
     human_delay(1, 2)
     if len(driver.window_handles) > 1:
         driver.switch_to.window(driver.window_handles[-1])
-    # click "Baixar XML NFE"
+    baixar_text = cfg.get("baixar_xml_link", "Baixar XML NFE")
     WebDriverWait(driver, 20).until(
-        EC.element_to_be_clickable((By.LINK_TEXT, "Baixar XML NFE"))
+        EC.element_to_be_clickable((By.LINK_TEXT, baixar_text))
     ).click()
     human_delay(0.5, 1.5)
     # wait for page load, re-authentication might be required
@@ -114,13 +125,16 @@ def set_date_range(driver: webdriver.Chrome, start_date: str, end_date: str):
     """Fill in the start and end date fields."""
     # Example selectors - adjust to match actual page
     check_pause()
+    cfg = SELECTORS.get("set_date_range", {})
+    start_id = cfg.get("start_id", "dataInicio")
+    end_id = cfg.get("end_id", "dataFim")
     start_field = WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.ID, "dataInicio"))
+        EC.presence_of_element_located((By.ID, start_id))
     )
     start_field.clear()
     start_field.send_keys(start_date)
     end_field = WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.ID, "dataFim"))
+        EC.presence_of_element_located((By.ID, end_id))
     )
     end_field.clear()
     end_field.send_keys(end_date)
@@ -130,8 +144,10 @@ def set_date_range(driver: webdriver.Chrome, start_date: str, end_date: str):
 def select_ie(driver: webdriver.Chrome, ie: str):
     """Enter an inscricao estadual number."""
     check_pause()
+    cfg = SELECTORS.get("select_ie", {})
+    field_id = cfg.get("field_id", "inscricaoEstadual")
     ie_field = WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.ID, "inscricaoEstadual"))
+        EC.presence_of_element_located((By.ID, field_id))
     )
     ie_field.clear()
     ie_field.send_keys(ie)
@@ -143,19 +159,23 @@ def download_xmls(driver: webdriver.Chrome, base_dir: Path, ie: str, entry_type:
     # entry_type should be "Entradas" or "Saidas"
     # Example radio button selector
     check_pause()
+    cfg = SELECTORS.get("download_xmls", {})
     radio = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.XPATH, f"//label[contains(., '{entry_type}')]"))
     )
     radio.click()
     human_delay()
-    search_btn = driver.find_element(By.ID, "btnPesquisar")
+    search_btn_id = cfg.get("search_button_id", "btnPesquisar")
+    search_btn = driver.find_element(By.ID, search_btn_id)
     search_btn.click()
     human_delay(1, 2)
     # wait until table results appear
+    table_selector = cfg.get("table_selector", "table")
     WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "table"))
+        EC.presence_of_element_located((By.CSS_SELECTOR, table_selector))
     )
-    download_links = driver.find_elements(By.LINK_TEXT, "Baixar XML")
+    link_text = cfg.get("download_link_text", "Baixar XML")
+    download_links = driver.find_elements(By.LINK_TEXT, link_text)
     ie_dir = base_dir / ie / entry_type
     ie_dir.mkdir(parents=True, exist_ok=True)
     downloaded = []

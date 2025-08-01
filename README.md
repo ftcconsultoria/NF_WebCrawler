@@ -52,10 +52,36 @@ input("Log in manually, then press Enter to continue...")
 ## Updating Selectors
 
 Elements such as **Acesso Restrito** and **Baixar XML NFE** are located using CSS
-and text selectors defined in [`crawler.py`](crawler.py). Check the
-`navigate_to_download_page` function around lines 89‑107 to see these selectors.
-If the script fails to locate the menu options, inspect the portal manually and
-update those selectors to match the current HTML structure.
+and text selectors defined in a configuration file, `config.json`. If the script
+fails to locate a menu option or form field, inspect the page manually and
+update the appropriate selector in `config.json`.
+
+### `config.json` format
+
+```json
+{
+  "navigate_to_download_page": {
+    "acesso_selector": "a.dashboard-sistemas-item[title='Acessar o Sistema']",
+    "baixar_xml_link": "Baixar XML NFE"
+  },
+  "set_date_range": {
+    "start_id": "dataInicio",
+    "end_id": "dataFim"
+  },
+  "select_ie": {
+    "field_id": "inscricaoEstadual"
+  },
+  "download_xmls": {
+    "search_button_id": "btnPesquisar",
+    "table_selector": "table",
+    "download_link_text": "Baixar XML"
+  }
+}
+```
+
+Each section corresponds to a function in `crawler.py` and can be adjusted to
+match the HTML structure of the portal. If `config.json` is missing, the default
+selectors coded in `crawler.py` are used.
 
 ## Tips
 
