@@ -1,6 +1,7 @@
 # NF WebCrawler
 
 This project automates the download of electronic invoice (NFE) XML files from the SEFAZ portal. The automation relies on Selenium to drive a web browser and perform the necessary interactions while the user manually supplies credentials. It is intended to simplify the retrieval process for multiple **Inscrições Estaduais** within a specified date range.
+For a quick setup guide, see `webcrawler_sefaz.md`.
 
 ## Required Packages
 
