@@ -1,5 +1,14 @@
 import threading
-from tkinter import Tk, Label, Entry, Button, StringVar, messagebox, Toplevel
+from tkinter import (
+    Tk,
+    Label,
+    Entry,
+    Button,
+    StringVar,
+    messagebox,
+    Toplevel,
+    filedialog,
+)
 
 import crawler
 from pause import PauseController
@@ -20,27 +29,34 @@ class App:
     def __init__(self, root: Tk):
         self.root = root
         root.title("NF WebCrawler")
-        root.geometry("360x220")
+        root.geometry("360x250")
 
         self.controller = PauseController()
         root.bind('<Motion>', self.controller.on_motion)
 
-        self.start_date = StringVar()
-        self.end_date = StringVar()
+        self.month = StringVar()
+        self.year = StringVar()
         self.ies = StringVar()
         self.download_dir = StringVar(value="downloads")
 
         crawler.set_prompt_callback(self.show_prompt)
 
-        Label(root, text="Start date (DD/MM/YYYY):").pack()
-        Entry(root, textvariable=self.start_date).pack()
-        Label(root, text="End date (DD/MM/YYYY):").pack()
-        Entry(root, textvariable=self.end_date).pack()
+        Label(root, text="M\u00eas (MM):").pack()
+        Entry(root, textvariable=self.month).pack()
+        Label(root, text="Ano (YYYY):").pack()
+        Entry(root, textvariable=self.year).pack()
         Label(root, text="IE list (space separated):").pack()
         Entry(root, textvariable=self.ies).pack()
         Label(root, text="Download directory:").pack()
-        Entry(root, textvariable=self.download_dir).pack()
+        dir_frame = Entry(root, textvariable=self.download_dir)
+        dir_frame.pack()
+        Button(root, text="Browse", command=self.browse_dir).pack(pady=2)
         Button(root, text="Start", command=self.start).pack(pady=8)
+
+    def browse_dir(self):
+        path = filedialog.askdirectory(initialdir=self.download_dir.get())
+        if path:
+            self.download_dir.set(path)
 
     def show_prompt(self, text: str):
         """Display a modal dialog asking the user to continue."""
@@ -59,14 +75,18 @@ class App:
 
     def start(self):
         ies_list = [v for v in self.ies.get().split() if v]
-        if not (self.start_date.get() and self.end_date.get() and ies_list):
+        month = self.month.get().zfill(2)
+        year = self.year.get()
+        if not (month and year and ies_list):
             messagebox.showerror("Missing Data", "Please fill all fields.")
             return
+        start_date = f"01/{month}/{year}"
+        end_date = f"31/{month}/{year}"
         thread = threading.Thread(
             target=run_crawler,
             args=(
-                self.start_date.get(),
-                self.end_date.get(),
+                start_date,
+                end_date,
                 ies_list,
                 self.download_dir.get(),
                 self.controller,
