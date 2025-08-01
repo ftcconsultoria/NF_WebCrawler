@@ -101,7 +101,9 @@ def navigate_to_download_page(driver: webdriver.Chrome):
     human_delay(1, 2)
     if len(driver.window_handles) > 1:
         driver.switch_to.window(driver.window_handles[-1])
-    # click "Baixar XML NFE"
+        close_certificate_popup(driver)
+        wait_for_user("Complete any required authentication, then continue...")
+    # click "Baixar XML NFE" after authentication
     WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.LINK_TEXT, "Baixar XML NFE"))
     ).click()
