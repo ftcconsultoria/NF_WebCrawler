@@ -69,8 +69,9 @@ This README provides an overview of how to set up the environment and manually o
 ## Interactive Mode
 
 The `menu.py` script now launches a small graphical interface similar to a Windows
-application. Fill in the dates, the space-separated list of **Inscrições Estaduais**
-and the download directory, then click **Start**.
+application. Choose the month and year, enter the space-separated list of
+**Inscrições Estaduais** and select the download directory (use the **Browse**
+button) then click **Start**.
 
 While the automation is running, moving the mouse over the application window
 pauses execution. After a few seconds without movement, the process resumes
