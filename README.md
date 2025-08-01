@@ -39,6 +39,9 @@ input("Log in manually, then press Enter to continue...")
 1. Open the login page: `https://portal.sefaz.go.gov.br/portalsefaz-apps/auth/login-form`.
 2. Enter your CPF and password manually and authenticate.
 3. Navigate to **"Acesso Restrito" → "Baixar XML NFE"**.
+   > **Note:** The portal may ask for your credentials again here. The crawler
+   will pause and display a **Continuar** dialog; log in and click the button to
+   resume.
 4. If asked to re-authenticate, do so manually again.
 5. Set the date filter using the drop-down menus from `01/07/2025` to `31/07/2025`.
 6. For each **Inscrição Estadual** from your list:
